@@ -1,24 +1,13 @@
 function openModal(popup) {
-    popup.classList.add('popup_is-animated');
-    
-    setTimeout(() => {
-        popup.classList.add('popup_is-opened');
-        popup.classList.remove('popup_is-animated');
-    }, 0);
+    popup.classList.add('popup_is-opened');
     document.addEventListener('keydown', closeModalOnEscape);
+    document.addEventListener('mousedown', closeModalOnOverlay);
 }
 
 function closeModal(popup) {
-    popup.classList.add('popup_is-animated');
-
-    setTimeout(() => {
-      popup.classList.remove('popup_is-opened');
-    }, 0);
-  
-    setTimeout(() => {
-      popup.classList.remove('popup_is-animated');
-    }, 300);
+    popup.classList.remove('popup_is-opened');
     document.removeEventListener('keydown', closeModalOnEscape);
+    document.removeEventListener('mousedown', closeModalOnOverlay);
 }
 
 function closeModalOnEscape(evt){
@@ -35,4 +24,4 @@ function closeModalOnOverlay(evt) {
     }
 }
 
-export {openModal, closeModal, closeModalOnOverlay}
+export {openModal, closeModal}

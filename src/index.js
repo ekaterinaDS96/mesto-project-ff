@@ -1,7 +1,7 @@
 import './pages/index.css';
 import {initialCards} from './scripts/cards.js';
 import {createCard, deleteCard, likeCard} from './scripts/card.js';
-import {openModal, closeModal, closeModalOnOverlay} from './scripts/modal.js';
+import {openModal, closeModal} from './scripts/modal.js';
 
 
 const cardsList = document.querySelector('.places__list');
@@ -38,14 +38,6 @@ profileEditButton.addEventListener('click', () => {
     openModal(profileEditPopup);
 });
 
-profileEditPopup.addEventListener('click', (evt) => {
-    closeModalOnOverlay(evt);
-});
-
-popup.addEventListener('click', (evt) => {
-    closeModalOnOverlay(evt);
-});
-
 function openFullImage(evt) {
     popupImage.src = evt.target.src;
     popupImage.alt = evt.target.alt;
@@ -54,6 +46,7 @@ function openFullImage(evt) {
 }
 
 function closeByButton(evt) {
+    console.log(evt.target);
     const popup = evt.target.closest('.popup');
     closeModal(popup);
 }
