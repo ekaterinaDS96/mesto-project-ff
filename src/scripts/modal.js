@@ -24,4 +24,9 @@ function closeModalOnOverlay(evt) {
     }
 }
 
-export {openModal, closeModal}
+function handleCloseByButton(evt) {
+    const popup = evt.target.closest('.popup');
+    closeModal(popup);
+}
+
+export {openModal, closeModal, handleCloseByButton}

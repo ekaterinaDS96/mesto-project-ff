@@ -1,30 +1,37 @@
 import { likeCard, unlikeCard } from "./api.js";
 
 const cardTemplate = document.querySelector('#card-template').content;
-const myID = "f84ecf6df16b9c52acf5165f";
 
-function createCard(card, deleteFunction, openFullImageFunction) {
+function createCard(card, handleDelete, handleOpenFullImage, handleLike, myID) {
     const cardItem = cardTemplate.querySelector('.card').cloneNode(true);
     const cardItemImage = cardItem.querySelector('.card__image');
     const cardDeleteButton = cardItem.querySelector('.card__delete-button');
     const cardItemTitle = cardItem.querySelector('.card__title');
     const cardLikeButton = cardItem.querySelector('.card__like-button');
     const cardLikeCount = cardItem.querySelector('.card__like-count');
-    const cardID = card['_id'];
+    const cardID = card._id;
     cardItem.id = cardID;
     cardItemImage.alt = card.name;
     cardItemTitle.textContent = card.name;
     cardItemImage.src = card.link;
     cardLikeCount.textContent = card.likes.length;
-    if (card.owner['_id']!=myID)
+    if (card.owner['_id']!==myID) {
         cardDeleteButton.style.display = 'none';
-    else cardDeleteButton.addEventListener('click', () =>{
-        deleteFunction(cardID);
-    });
+    }
+    else {
+        cardDeleteButton.addEventListener('click', () =>{
+        handleDelete(cardID);
+        });
+    }
     cardLikeButton.addEventListener('click', () => {
-        handleLikeCard(cardLikeButton, cardLikeCount, cardID)
+        handleLike(cardLikeButton, cardLikeCount, cardID)
     });
-    cardItemImage.addEventListener('click', openFullImageFunction);
+    cardItemImage.addEventListener('click', handleOpenFullImage);
+
+    const myLikes = card.likes.find((element) => element._id === myID);
+    if (myLikes) {
+        cardLikeButton.classList.add('card__like-button_is-active')
+    };
 
     return cardItem;
 }
@@ -52,4 +59,9 @@ function handleLikeCard(button, likeCount, id) {
     
 }
 
-export {createCard}
+function handleDeleteCardFromList(id) {
+    const card = document.querySelector(`[id='${id}']`);
+    card.remove();
+}
+
+export {createCard, handleLikeCard, handleDeleteCardFromList}

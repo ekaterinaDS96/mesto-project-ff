@@ -1,16 +1,16 @@
 import './pages/index.css';
-import {createCard} from './scripts/card.js';
-import {openModal, closeModal} from './scripts/modal.js';
+import {createCard, handleLikeCard, handleDeleteCardFromList} from './scripts/card.js';
+import {openModal, closeModal, handleCloseByButton} from './scripts/modal.js';
 import { enableValidation, clearValidation } from './scripts/validation.js';
 import { getCards, getProfile, updateProfile, postNewCard, deleteCard, updateProfileImage } from './scripts/api.js';
 
-const cardsList = document.querySelector('.places__list');
+const cardsContainer = document.querySelector('.places__list');
 
 const profileEditButton = document.querySelector('.profile__edit-button');
 const profileEditPopup = document.querySelector('.popup_type_edit');
 const profileEditForm = document.forms['edit-profile'];
-const profileEditFormName = profileEditForm.elements.name;
-const profileEditFormDescription = profileEditForm.elements.description;
+const profileEditFormNameInput = profileEditForm.elements.name;
+const profileEditFormDescriptionInput = profileEditForm.elements.description;
 const profileEditSubmitButton = profileEditForm.querySelector('.popup__button');
 const profileName = document.querySelector('.profile__title');
 const profileDescription = document.querySelector('.profile__description');
@@ -24,15 +24,14 @@ const popupCloseButtons = document.querySelectorAll('.popup__close');
 const popupAddCard = document.querySelector('.popup_type_new-card');
 const popupAddButton = document.querySelector('.profile__add-button');
 const cardAddForm = document.forms['new-place'];
-const cardAddFormName = cardAddForm.elements['place-name'];
-const cardAddFormSource = cardAddForm.elements.link;
+const cardAddFormNameInput = cardAddForm.elements['place-name'];
+const cardAddFormSourceInput = cardAddForm.elements.link;
 const cardSubmitButton = cardAddForm.querySelector('.popup__button');
-const myID = "f84ecf6df16b9c52acf5165f";
-const promises = [getCards, getProfile];
+let myID = "";
+const initialDataResponsePromises = [getCards(), getProfile()];
 
 const cardDeletePopup = document.querySelector('.popup_type_delete-card');
 const cardDeleteForm = document.forms['delete-card'];
-const cardDeleteFormSubmitButton = cardDeleteForm.querySelector('.popup__button');
 
 const imageEditPopup = document.querySelector('.popup_type_edit-image');
 const imageEditButton = document.querySelector('.profile__image-button');
@@ -49,35 +48,28 @@ const validationConfig = {
     errorClass: 'popup__error_visible'
 }
 
-Promise.all(promises)
-.then(()=> {
-    getProfile()
-    .then(data => {
-        profileName.textContent = data.name;
-        profileDescription.textContent = data.about;
-        profileImage.style.backgroundImage = `url('${data.avatar}')`;
-    })
-    .catch(error => {
-        console.log(error);
-    })
-    getCards()
-    .then(data=> {
-        data.forEach((card)=>addCard(card, cardsList));
+Promise.all(initialDataResponsePromises)
+.then(([cards, profile])=> {
+    myID = profile._id;
+    profileName.textContent = profile.name;
+    profileDescription.textContent = profile.about;
+    profileImage.style.backgroundImage = `url('${profile.avatar}')`;
+    cards.forEach((card)=>addCard(card, cardsContainer));
     })
     .catch(error=> {
         console.log(error);
-    })
-})
+    });
+
 
 function addCard(card, list){
-    const createdCard = createCard(card, handleOpenDeleteCardPopup, handleOpenFullImage);
+    const createdCard = createCard(card, handleOpenDeleteCardPopup, handleOpenFullImage, handleLikeCard, myID);
     list.append(createdCard);
 }
 
 profileEditButton.addEventListener('click', () => {
     clearValidation(profileEditForm, validationConfig);
-    profileEditFormName.value = profileName.textContent;
-    profileEditFormDescription.value = profileDescription.textContent;
+    profileEditFormNameInput.value = profileName.textContent;
+    profileEditFormDescriptionInput.value = profileDescription.textContent;
     openModal(profileEditPopup);
 });
 
@@ -88,10 +80,6 @@ function handleOpenFullImage(evt) {
     openModal(popup);
 }
 
-function handleCloseByButton(evt) {
-    const popup = evt.target.closest('.popup');
-    closeModal(popup);
-}
 
 popupCloseButtons.forEach((button)=> {
     button.addEventListener('click', handleCloseByButton);
@@ -100,11 +88,11 @@ popupCloseButtons.forEach((button)=> {
 function handleSubmitProfileForm(evt) {
     evt.preventDefault();
     profileEditSubmitButton.textContent = "Сохранение...";
-    updateProfile(profileEditFormName.value, profileEditFormDescription.value)
+    updateProfile(profileEditFormNameInput.value, profileEditFormDescriptionInput.value)
     .then((data) => {
         console.log(data);
-        profileName.textContent = profileEditFormName.value;
-        profileDescription.textContent = profileEditFormDescription.value;
+        profileName.textContent = profileEditFormNameInput.value;
+        profileDescription.textContent = profileEditFormDescriptionInput.value;
         closeModal(profileEditPopup);
     })
     .catch((error) => {
@@ -126,11 +114,11 @@ popupAddButton.addEventListener('click', () => {
 function handleAddCardFromForm(evt) {
     evt.preventDefault();
     cardSubmitButton.textContent = "Сохранение...";
-    const name = cardAddFormName.value;
-    const link = cardAddFormSource.value;
+    const name = cardAddFormNameInput.value;
+    const link = cardAddFormSourceInput.value;
     postNewCard(name, link)
     .then((data) => {
-        cardsList.prepend(createCard(data, handleOpenDeleteCardPopup, handleOpenFullImage));
+        cardsContainer.prepend(createCard(data, handleOpenDeleteCardPopup, handleOpenFullImage, handleLikeCard, myID));
         closeModal(popupAddCard);
     })
     .catch((error)=> {
@@ -156,8 +144,7 @@ function handleDeleteCard(evt) {
     const id = cardDeleteForm.dataset.id;
     deleteCard(id)
     .then(()=> {
-        const card = document.querySelector(`[id='${id}']`);
-        card.remove();
+        handleDeleteCardFromList(id);
         closeModal(cardDeletePopup);
     })
     .catch((error) => {

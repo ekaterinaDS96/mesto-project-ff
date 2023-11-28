@@ -5,10 +5,15 @@ function hasInvalidInput(inputList) {
 }
 
 function toggleButtonState(inputList, button, disabledClass) {
-    if (hasInvalidInput(inputList))
+    if (hasInvalidInput(inputList)) {
         button.classList.add(disabledClass);
-    else 
+        button.disabled = true;
+    }   
+    else {
+        button.disabled = false;
         button.classList.remove(disabledClass);
+    }
+        
 }
 
 function showError(form, formInput, formInputErrorClass, errorClass, errorMessage) {
